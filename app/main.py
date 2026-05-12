@@ -1,13 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.router import router as v1_router
+# Configuración de la aplicación
 from app.core.config import settings
-from app.db.base import Base
-from app.db.session import engine
 
-# Create all tables
-Base.metadata.create_all(bind=engine)
+# Versiones de API
+from app.api.router import router as v1_router
+
+# from app.db.base import Base
+
+# # Create all tables
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -19,7 +22,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,7 +30,11 @@ app.add_middleware(
 
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 
-
-@app.get("/health", tags=["health"])
-def health_check():
-    return {"status": "ok", "version": settings.APP_VERSION}
+@app.get("/")
+def read_root():
+    """Root endpoint"""
+    return {
+        "message": f"Welcome to {settings.PROJECT_NAME}",
+        "version": settings.VERSION,
+        "docs": "/api/docs"
+    }
