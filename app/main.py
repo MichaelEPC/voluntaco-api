@@ -5,12 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 
 # Versiones de API
-from app.api.router import router as v1_router
-
-# from app.db.base import Base
-
-# # Create all tables
-# Base.metadata.create_all(bind=engine)
+from app.api.v1.router import router as v1_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -34,7 +29,7 @@ app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 def read_root():
     """Root endpoint"""
     return {
-        "message": f"Welcome to {settings.PROJECT_NAME}",
-        "version": settings.VERSION,
+        "message": f"Welcome to {settings.APP_NAME}",
+        "version": settings.APP_VERSION,
         "docs": "/api/docs"
     }

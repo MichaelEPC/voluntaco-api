@@ -1,8 +1,11 @@
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+
     # App
     APP_NAME: str = "Voluntaco API"
     APP_VERSION: str = "1.0.0"
@@ -19,10 +22,6 @@ class Settings(BaseSettings):
     TURSO_AUTH_TOKEN: str
 
     ALLOWED_ORIGINS: list[str] = ["*"]
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 @lru_cache()

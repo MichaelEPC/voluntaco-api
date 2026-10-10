@@ -1,9 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, status, Depends
-from fastapi.responses import FileResponse
-
-from pathlib import Path
-
-from app.db.base import get_db
+from fastapi import HTTPException, status
 
 # Extraer Voluntariados de una Fundación específica
 async def obtener_voluntariados_por_fundacion(id_fundacion: str, db):
@@ -127,7 +122,7 @@ async def modificar_voluntariado(v_id: int, f_id: str, datos, db):
         raise HTTPException(status_code=404, detail="Voluntariado no encontrado")
 
     # 2. Construir la query dinámica para los campos básicos
-    campos = datos.dict(exclude={'habilidades_ids'}, exclude_unset=True)
+    campos = datos.model_dump(exclude={'habilidades_ids'}, exclude_unset=True)
     if campos:
         set_query = ", ".join([f"{k} = ?" for k in campos.keys()])
         valores = list(campos.values()) + [v_id, f_id]
