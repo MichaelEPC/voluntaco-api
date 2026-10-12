@@ -23,6 +23,15 @@ class Settings(BaseSettings):
 
     ALLOWED_ORIGINS: list[str] = ["*"]
 
+    # Cloudflare R2 (almacenamiento de imágenes de proyectos y otros archivos)
+    R2_ACCOUNT_ID: str
+    R2_ACCESS_KEY_ID: str
+    R2_SECRET_ACCESS_KEY: str
+    R2_BUCKET_NAME: str
+    # Dominio público (custom domain / CDN) servido por R2, si está configurado.
+    # Si no se define, se persiste solo la key del objeto en el bucket.
+    R2_PUBLIC_BASE_URL: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

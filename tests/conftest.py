@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.main import app
+from app.services.storage.r2_storage import get_storage_service
 
 
 class FakeResult:
@@ -42,17 +43,44 @@ class FakeDBClient:
         pass
 
 
+class FakeStorageService:
+    """Doble de prueba del servicio de almacenamiento R2: no habla con la red."""
+
+    def __init__(self):
+        self.archivos_subidos = []
+        self.urls_resueltas = []
+
+    def guardar_archivo(self, contenido, carpeta, nombre_base, extension, content_type):
+        self.archivos_subidos.append((contenido, carpeta, nombre_base, extension, content_type))
+        return f"https://fake-r2.test/{carpeta}/{nombre_base}.{extension}"
+
+    def obtener_url_descarga(self, valor_almacenado, expiracion_segundos=None):
+        self.urls_resueltas.append(valor_almacenado)
+        if valor_almacenado.startswith(("http://", "https://")):
+            return valor_almacenado
+        return f"https://fake-r2.test/presigned/{valor_almacenado}"
+
+
 @pytest.fixture
 def fake_db():
     return FakeDBClient()
 
 
 @pytest.fixture
-def client(fake_db):
+def fake_storage():
+    return FakeStorageService()
+
+
+@pytest.fixture
+def client(fake_db, fake_storage):
     async def override_get_db():
         yield fake_db
 
+    def override_get_storage_service():
+        return fake_storage
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_storage_service] = override_get_storage_service
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
@@ -64,3 +92,4 @@ def auth_token_factory():
         return create_access_token({"sub": user_id, "role": role, "name": name})
 
     return _make
+

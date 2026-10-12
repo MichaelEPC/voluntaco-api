@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 logger = logging.getLogger(__name__)
 
 
-async def crear_nueva_meta(proyecto_id: int, fundacion_id: str, datos, db):
+async def crear_nueva_meta(proyecto_id: str, fundacion_id: str, datos, db):
     """Crea una nueva meta dentro de un proyecto perteneciente a la fundación autenticada."""
     # Verificar que el proyecto exista y pertenezca a la fundación
     check = await db.execute(

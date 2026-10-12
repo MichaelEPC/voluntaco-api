@@ -1,6 +1,6 @@
 """Endpoints de gestión de voluntariados publicados por fundaciones."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 
 from app.api.deps import require_fundacion
 from app.db.session import get_db
@@ -10,6 +10,7 @@ from app.schemas.proyectos import ProyectoCreate
 from app.services.fundaciones import fundaciones as fundaciones_services
 from app.services.metas import metas as metas_services
 from app.services.proyectos import proyectos as proyectos_services
+from app.services.storage.r2_storage import CloudStorageService, get_storage_service
 
 router = APIRouter(prefix="/fundaciones", tags=["Fundaciones"])
 
@@ -31,18 +32,44 @@ async def listar_voluntariados_fundacion(
     return voluntariados_lista
 
 
+@router.get("/proyectos")
+async def get_proyectos_fundacion(
+    db=Depends(get_db),
+    storage: CloudStorageService = Depends(get_storage_service),
+    usuario: dict = Depends(require_fundacion),  # Solo fundaciones ven sus propios proyectos
+):
+    return await proyectos_services.obtener_proyectos_por_fundacion(usuario["id"], db, storage)
+
+
 @router.post("/proyectos/crear")
 async def post_proyecto(
-    datos: ProyectoCreate,
+    datos: ProyectoCreate = Depends(ProyectoCreate.as_form),
+    foto: UploadFile | None = File(None),  # Foto principal del proyecto
+    foto_cabeza: UploadFile | None = File(None),  # Foto de encabezado del proyecto
     db=Depends(get_db),
+    storage: CloudStorageService = Depends(get_storage_service),
     usuario: dict = Depends(require_fundacion),  # Solo fundaciones pueden crear proyectos
 ):
-    return await proyectos_services.crear_nuevo_proyecto(usuario["id"], datos, db)
+    return await proyectos_services.crear_nuevo_proyecto(
+        usuario["id"], datos, foto, foto_cabeza, db, storage
+    )
+
+
+@router.post("/proyectos/{proyecto_id}")
+async def post_proyecto_individual(
+    proyecto_id: str,
+    db=Depends(get_db),
+    storage: CloudStorageService = Depends(get_storage_service),
+    usuario: dict = Depends(require_fundacion),  # Solo fundaciones pueden crear metas
+):
+    return await proyectos_services.obtener_proyecto_invididual_fundacion(
+        usuario["id"], proyecto_id, db, storage
+    )
 
 
 @router.post("/proyectos/{proyecto_id}/metas/crear")
 async def post_meta(
-    proyecto_id: int,
+    proyecto_id: str,
     datos: MetaCreate,
     db=Depends(get_db),
     usuario: dict = Depends(require_fundacion),  # Solo fundaciones pueden crear metas

@@ -7,3 +7,4 @@ libsql-client==0.3.1
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.26
+boto3==1.43.111
