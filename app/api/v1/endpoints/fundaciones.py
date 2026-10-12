@@ -2,10 +2,14 @@
 
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_current_user, require_fundacion
+from app.api.deps import require_fundacion
 from app.db.session import get_db
 from app.schemas.fundaciones import RequestFundacion, VoluntariadoCreate, VoluntariadoUpdate
+from app.schemas.metas import MetaCreate
+from app.schemas.proyectos import ProyectoCreate
 from app.services.fundaciones import fundaciones as fundaciones_services
+from app.services.metas import metas as metas_services
+from app.services.proyectos import proyectos as proyectos_services
 
 router = APIRouter(prefix="/fundaciones", tags=["Fundaciones"])
 
@@ -27,14 +31,32 @@ async def listar_voluntariados_fundacion(
     return voluntariados_lista
 
 
+@router.post("/proyectos/crear")
+async def post_proyecto(
+    datos: ProyectoCreate,
+    db=Depends(get_db),
+    usuario: dict = Depends(require_fundacion),  # Solo fundaciones pueden crear proyectos
+):
+    return await proyectos_services.crear_nuevo_proyecto(usuario["id"], datos, db)
+
+
+@router.post("/proyectos/{proyecto_id}/metas/crear")
+async def post_meta(
+    proyecto_id: int,
+    datos: MetaCreate,
+    db=Depends(get_db),
+    usuario: dict = Depends(require_fundacion),  # Solo fundaciones pueden crear metas
+):
+    return await metas_services.crear_nueva_meta(proyecto_id, usuario["id"], datos, db)
+
+
 @router.post("/voluntariados/crear")
 async def post_voluntariado(
     datos: VoluntariadoCreate,
     db=Depends(get_db),
-    current_user: dict = Depends(get_current_user),  # Esto decodifica el JWT
+    usuario: dict = Depends(require_fundacion),  # Solo fundaciones pueden publicar voluntariados
 ):
-    fundacion_id = current_user["id"]
-    return await fundaciones_services.crear_nuevo_voluntariado(fundacion_id, datos, db)
+    return await fundaciones_services.crear_nuevo_voluntariado(usuario["id"], datos, db)
 
 
 @router.delete("/voluntariados/{voluntariado_id}")

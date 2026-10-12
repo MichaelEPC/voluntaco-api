@@ -1,13 +1,14 @@
 """Lógica de negocio para el registro de voluntarios y fundaciones."""
 
+import logging
 import uuid
 
 from fastapi import HTTPException, status
 
+from app.core.constants import ROL_FUNDACION, ROL_VOLUNTARIO
 from app.core.security import hash_password
 
-ROL_VOLUNTARIO = 1
-ROL_FUNDACION = 2
+logger = logging.getLogger(__name__)
 
 
 async def registrar_usuario_voluntario(usuario, db):
@@ -63,12 +64,12 @@ async def registrar_usuario_voluntario(usuario, db):
             "usuario_id": nuevo_id_usuario,
         }
 
-    except Exception as e:
-        print(f"Error en registro: {e}")
+    except Exception:
+        logger.exception("Error en registro de voluntario")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error crítico al procesar el registro en la base de datos.",
-        )
+        ) from None
 
 
 async def registrar_usuario_fundacion(usuario, db):
@@ -123,9 +124,9 @@ async def registrar_usuario_fundacion(usuario, db):
             "usuario_id": nuevo_id_usuario,
         }
 
-    except Exception as e:
-        print(f"Error en registro fundacion: {e}")
+    except Exception:
+        logger.exception("Error en registro de fundación")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No se pudo completar el registro de la fundación.",
-        )
+        ) from None

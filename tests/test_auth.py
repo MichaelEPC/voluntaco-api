@@ -64,6 +64,23 @@ def test_registro_voluntario_email_duplicado(client, fake_db):
     assert response.json()["detail"] == "El email ya se encuentra registrado."
 
 
+def test_registro_voluntario_password_demasiado_corta(client):
+    response = client.post(
+        f"{PREFIX}/registro-voluntario",
+        json={
+            "documento_identidad": "123456789",
+            "nombre_completo": "Ana Pérez",
+            "email": "ana@test.com",
+            "password": "corta1",  # 6 caracteres, por debajo del mínimo de 8
+            "telefono": "3001234567",
+            "rol_id": 1,
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "La contraseña debe tener entre 8 y 72 caracteres."
+
+
 def test_registro_voluntario_exitoso(client, fake_db):
     fake_db._responses = [FakeResult(rows=[]), FakeResult(rows=[])]  # email y cédula libres
 

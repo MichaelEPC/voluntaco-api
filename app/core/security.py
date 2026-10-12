@@ -4,7 +4,7 @@ Punto único de verdad para toda la aplicación (antes duplicado entre
 este módulo y app/services/auth/login_user.py).
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from jose import jwt
@@ -28,7 +28,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """Crea un JWT a partir de `data`, agregando el claim de expiración."""
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.now(UTC) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})

@@ -7,11 +7,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
 from app.core.config import settings
+from app.core.constants import ROL_FUNDACION
 from app.core.security import decode_access_token
-
-# Roles de negocio (coinciden con la tabla `roles` de la base de datos)
-ROL_VOLUNTARIO = 1
-ROL_FUNDACION = 2
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_PREFIX}/auth/iniciar-sesion")
 
@@ -26,7 +23,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> dict:
     try:
         payload = decode_access_token(token)
     except JWTError:
-        raise credentials_exception
+        raise credentials_exception from None
 
     user_id = payload.get("sub")
     if user_id is None:

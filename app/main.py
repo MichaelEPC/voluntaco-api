@@ -1,18 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Configuración de la aplicación
-from app.core.config import settings
-
 # Versiones de API
 from app.api.v1.router import router as v1_router
 
+# Configuración de la aplicación
+from app.core.config import settings
+from app.core.logging_config import configure_logging
+
+configure_logging()
+
+# En producción (DEBUG=false) ocultamos el esquema de la API para no
+# exponer públicamente todos los endpoints, modelos y rutas internas.
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
-    docs_url=f"{settings.API_V1_PREFIX}/docs",
-    redoc_url=f"{settings.API_V1_PREFIX}/redoc",
+    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json" if settings.DEBUG else None,
+    docs_url=f"{settings.API_V1_PREFIX}/docs" if settings.DEBUG else None,
+    redoc_url=f"{settings.API_V1_PREFIX}/redoc" if settings.DEBUG else None,
 )
 
 app.add_middleware(

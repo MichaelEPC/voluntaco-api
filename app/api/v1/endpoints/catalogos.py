@@ -18,6 +18,11 @@ async def listar_modalidades(db=Depends(get_db)):
     return await catalogos.obtener_catalogo_modalidades_voluntariados(db)
 
 
+@router.get("/tipos-voluntariado")
+async def listar_tipos_voluntariado(db=Depends(get_db)):
+    return await catalogos.obtener_catalogo_tipos_voluntariado(db)
+
+
 @router.get("/habilidades-voluntariados")
 async def listar_habilidades(db=Depends(get_db)):
     return await catalogos.obtener_catalogo_habilidades_voluntariados(db)

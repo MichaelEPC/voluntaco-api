@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    env:
+      # Valores ficticios: los tests nunca golpean la base de datos real,
+      # pero Settings exige que estas variables existan para poder arrancar.
+      SECRET_KEY_LOGIN: ci-only-placeholder-secret
+      TURSO_DATABASE_URL: libsql://ci-placeholder.turso.io
+      TURSO_AUTH_TOKEN: ci-only-placeholder-token
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check app/ tests/ main.py
+
+      - name: Ejecutar tests
+        run: pytest tests/ -v

@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, status
 
+from app.core.constants import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH
 from app.core.validators import validate_length_range
 from app.db.session import get_db
 from app.schemas.auth import RegistroFundacion, RegistroVoluntario, UserLogin
@@ -10,13 +11,18 @@ from app.services.auth import login_user, register_user
 router = APIRouter(prefix="/auth", tags=["Inicio de Sesión"])
 
 MSG_EMAIL = "El correo electrónico debe tener entre 1 y 72 caracteres."
-MSG_PASSWORD = "La contraseña debe tener entre 1 y 72 caracteres."
+MSG_PASSWORD_LOGIN = "La contraseña debe tener entre 1 y 72 caracteres."
+MSG_PASSWORD_REGISTRO = (
+    f"La contraseña debe tener entre {PASSWORD_MIN_LENGTH} y {PASSWORD_MAX_LENGTH} caracteres."
+)
 
 
 @router.post("/iniciar-sesion", status_code=status.HTTP_200_OK)
 async def iniciar_sesion(usuario: UserLogin, db=Depends(get_db)):
+    # En login solo validamos formato (no la política de contraseñas),
+    # para no bloquear cuentas creadas antes de endurecer la política.
     validate_length_range(usuario.email, 0, 72, MSG_EMAIL)
-    validate_length_range(usuario.password, 0, 72, MSG_PASSWORD)
+    validate_length_range(usuario.password, 0, PASSWORD_MAX_LENGTH, MSG_PASSWORD_LOGIN)
 
     return await login_user.autenticar_y_generar_token(usuario.email, usuario.password, db)
 
@@ -24,7 +30,9 @@ async def iniciar_sesion(usuario: UserLogin, db=Depends(get_db)):
 @router.post("/registro-voluntario", status_code=status.HTTP_200_OK)
 async def registrar_voluntario(usuario: RegistroVoluntario, db=Depends(get_db)):
     validate_length_range(usuario.email, 0, 72, MSG_EMAIL)
-    validate_length_range(usuario.password, 0, 72, MSG_PASSWORD)
+    validate_length_range(
+        usuario.password, PASSWORD_MIN_LENGTH - 1, PASSWORD_MAX_LENGTH, MSG_PASSWORD_REGISTRO
+    )
     validate_length_range(
         usuario.documento_identidad, 0, 10,
         "El documento de identidad debe tener entre 1 y 10 caracteres.",
@@ -44,7 +52,9 @@ async def registrar_voluntario(usuario: RegistroVoluntario, db=Depends(get_db)):
 @router.post("/registro-fundacion", status_code=status.HTTP_200_OK)
 async def registrar_fundacion(usuario: RegistroFundacion, db=Depends(get_db)):
     validate_length_range(usuario.email, 0, 72, MSG_EMAIL)
-    validate_length_range(usuario.password, 0, 72, MSG_PASSWORD)
+    validate_length_range(
+        usuario.password, PASSWORD_MIN_LENGTH - 1, PASSWORD_MAX_LENGTH, MSG_PASSWORD_REGISTRO
+    )
     validate_length_range(
         usuario.nit, 0, 10,
         "El NIT debe tener entre 1 y 10 caracteres.",
