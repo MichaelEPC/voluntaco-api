@@ -77,6 +77,15 @@ async def post_meta(
     return await metas_services.crear_nueva_meta(proyecto_id, usuario["id"], datos, db)
 
 
+@router.get("/proyectos/{proyecto_id}/metas")
+async def get_metas_proyecto(
+    proyecto_id: str,
+    db=Depends(get_db),
+    usuario: dict = Depends(require_fundacion),  # Solo fundaciones consultan metas de sus proyectos
+):
+    return await metas_services.obtener_metas_por_proyecto(proyecto_id, usuario["id"], db)
+
+
 @router.post("/voluntariados/crear")
 async def post_voluntariado(
     datos: VoluntariadoCreate,
@@ -86,20 +95,37 @@ async def post_voluntariado(
     return await fundaciones_services.crear_nuevo_voluntariado(usuario["id"], datos, db)
 
 
-@router.delete("/voluntariados/{voluntariado_id}")
+@router.get("/voluntariados/{voluntariado_id}")
+async def get_voluntariado_individual(
+    voluntariado_id: str,
+    db=Depends(get_db),
+    storage: CloudStorageService = Depends(get_storage_service),
+):
+    return await fundaciones_services.obtener_voluntariado_por_id(voluntariado_id, db, storage)
+
+
+@router.delete("/voluntariados/eliminar/{voluntariado_id}")
 async def eliminar_voluntariado(
-    voluntariado_id: int,
+    voluntariado_id: str,
     db=Depends(get_db),
     usuario: dict = Depends(require_fundacion),  # SEGURIDAD: Solo fundaciones
 ):
     return await fundaciones_services.eliminar_voluntariado(voluntariado_id, usuario["id"], db)
 
 
-@router.patch("/voluntariados/{voluntariado_id}")
+@router.patch("/voluntariados/actualizar/{voluntariado_id}")
 async def actualizar_voluntariado(
-    voluntariado_id: int,
+    voluntariado_id: str,
     datos: VoluntariadoUpdate,
     db=Depends(get_db),
     usuario: dict = Depends(require_fundacion),
 ):
     return await fundaciones_services.modificar_voluntariado(voluntariado_id, usuario["id"], datos, db)
+
+
+@router.get("/voluntariados/metas/{meta_id}")
+async def get_voluntariados_por_meta(
+    meta_id: str,
+    db=Depends(get_db),
+):
+    return await fundaciones_services.obtener_voluntariados_por_metas(meta_id, db)

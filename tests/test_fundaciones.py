@@ -8,7 +8,7 @@ def test_eliminar_voluntariado_requiere_rol_fundacion(client, auth_token_factory
     token = auth_token_factory(role=1)
 
     response = client.delete(
-        f"{PREFIX}/voluntariados/1",
+        f"{PREFIX}/voluntariados/eliminar/1",
         headers={"Authorization": f"Bearer {token}"},
     )
 
@@ -17,6 +17,6 @@ def test_eliminar_voluntariado_requiere_rol_fundacion(client, auth_token_factory
 
 
 def test_eliminar_voluntariado_sin_token(client):
-    response = client.delete(f"{PREFIX}/voluntariados/1")
+    response = client.delete(f"{PREFIX}/voluntariados/eliminar/1")
 
     assert response.status_code == 401
